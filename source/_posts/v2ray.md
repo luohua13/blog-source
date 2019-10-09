@@ -2,7 +2,7 @@
 title: docker 安装v2ray
 date: 2019-10-09 10:28:02
 tags: [v2ray,caddy, docker]
-categories: 网络
+categories: network
 ---
 
 ## before you begin
@@ -10,6 +10,7 @@ categories: 网络
 - Have a vps
 - Have a domain
 - Solve your domain to your vps's IP
+<!--more-->
 ## Start
 
 ### run v2ray
@@ -24,8 +25,9 @@ telnet 172.17.0.2 8888
 ```
 
 ### run caddy
+```golang
 docker run -d --restart=always -p 80:80 -p 443:443 -v /data/caddy:/caddy --name=caddy blob/caddy -conf="/caddy/conf/Caddyfile"
-
+```
 
 
 ### Caddyfile (/data/caddy/Caddyfile)
