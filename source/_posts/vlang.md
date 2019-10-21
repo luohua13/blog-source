@@ -1,6 +1,6 @@
 ---
 title: vlang语言特性探究
-date: 2019-10-09 10:28:02
+date: 2019-10-17 18:00
 tags: [vlang,c]
 categories: language
 ---
@@ -105,7 +105,7 @@ fn main() {
 ### 14、泛型编程：相比于golang使用interface机制实现的桥接模式的伪泛型，vlang实现了类似与C++的真正意义上的泛型机制
 
 但是经过很多次测试都没成功，还有待官方文档的完善和vlang版本的变更。
-```
+
 
 ### 15、并发
 与golang非常类似，引用原文如下：
@@ -204,9 +204,9 @@ v -os windows
 v -os linux
 ```
 
-### 24、操作符重载
+### 24、操作符重载(已验证)
 
-### 25、在v中调用c语言
+### 25、在v中调用c语言（未验证）
 
 ### 26、Hot ode reloading
 
