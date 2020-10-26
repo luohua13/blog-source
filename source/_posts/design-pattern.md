@@ -5,8 +5,8 @@ tags: [design-pattern,c++]
 categories: language
 ---
 
+在软件生存期的每个阶段都存在着一些被认同的模式。本文我们将研究下常见设计模式中的工厂模式。
 <!--more-->
-
 ## Before you begin
 
 - [图解设计模式](https://design-patterns.readthedocs.io/zh_CN/latest/creational_patterns/creational.html)
