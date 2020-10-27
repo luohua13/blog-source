@@ -19,13 +19,15 @@ Hierarchical Namespace Controller (HNC) 是google公司为了改善k8s多租户�
 
 HNC 在今年应该还不能被正式使用。
 
-### 开始
+## 准备开始
+你必须拥有一个 Kubernetes 的集群，同时你的 Kubernetes 集群必须带有 kubectl 命令行工具。 如果你还没有集群，你可以通过 Minikube 构建一个你自己的集群。
 
-感谢HNC 幕后团队出色的工作，使得hnc已经可以在本地用 Kind 命令开发和测试，并且是如此的easy!
+## 开始
+
+感谢HNC 幕后团队出色的工作，使得hnc已经可以在本地开发和测试，并且是如此的easy!
 
 
 ```bash
-$ kind create cluster
 $ kubectl apply -f https://github.com/kubernetes-sigs/multi-tenancy/releases/download/hnc-v0.5.1/hnc-manager.yaml
 
 $ curl -L https://github.com/kubernetes-sigs/multi-tenancy/releases/download/hnc-v0.5.1/kubectl-hns -o ./kubectl-hns
@@ -35,3 +37,75 @@ $ chmod +x ./kubectl-hns
 $ export PATH=${PWD}:${PATH}
 
 ```
+
+然后你可以开始测试：
+
+```bash
+
+$ kubectl create ns hnc-parent
+namespace/hnc-parent created
+$ kubectl create ns hnc-child-1
+namespace/hnc-child-1 created
+$ kubectl create ns hnc-child-2
+namespace/hnc-child-2 created
+
+$ kubectl hns set hnc-child-1 -p hnc-parent
+Setting the parent of hnc-child-1 to hnc-parent
+Succesfully updated 1 property of the hierarchical configuration of hnc-child-1
+$ kubectl hns set hnc-child-2 -p hnc-parent
+Setting the parent of hnc-child-2 to hnc-parent
+Succesfully updated 1 property of the hierarchical configuration of hnc-child-2
+
+$ kubectl hns tree -A
+default
+hnc-parent
+├── hnc-child-1
+└── hnc-child-2
+hnc-system
+kube-node-lease
+kube-public
+kube-system
+local-path-storage
+
+```
+
+默认情况下， parent namespace下的所属的Role 和 RoleBinding 对象会传递给 child 命名空间对象。
+
+```bash
+
+$ kubectl create role pod-reader --verb=get --verb=list --verb=watch --resource=pods -n hnc-parent
+role.rbac.authorization.k8s.io/pod-reader created
+```
+所以，让我们验证下 hnc-child-{1,2} 命名空间下是否能看到相同的 role：
+
+``` bash
+
+$ kubectl get role -n hnc-child-1 --show-labels
+NAME         CREATED AT             LABELS
+pod-reader   2020-08-24T08:13:00Z   hnc.x-k8s.io/inheritedFrom=hnc-parent
+$ kubectl get role -n hnc-child-2 --show-labels
+NAME         CREATED AT             LABELS
+pod-reader   2020-08-24T08:13:00Z   hnc.x-k8s.io/inheritedFrom=hnc-parent
+
+```
+
+怎么样？够酷炫吧！它能满足我们很多年梦寐以求的使用场景。
+
+## 使用案例
+
+kubernetes 是 SIGHUP 业务的核心部分。我们在很多大规模的公司工作，因为k8s没有多租户特性使我们遇到了很多难以解决的挑战。
+
+在这篇文章中将展示 HNC 两种不同的使用案例。
+
+### Namespace 自给（self provisioning）
+
+有时开发者为了开发的工作需要创建新的 namespace。因为 namespace是集群级别的对象，集群管理员需要赋予开发者相应的权限。在赋予创建 namespace的权限之后，你（作为集群管理员）可能还想附加一些默认的配置，例如：
+
+- NetworkPolicies 
+- Roles and RoleBindings
+- ResourceQuotas
+- LimitRanges
+
+否则，你将很快面临一个混乱的集群。那么你该怎么办呢？
+
+HNC 闪亮登场！ 
