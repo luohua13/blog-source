@@ -1,5 +1,5 @@
 ---
-title: Hierarchical Namespace Controller (HNC):对k8s多租户特性的惊鸿一瞥
+title: 译：Hierarchical Namespace Controller (HNC):对k8s多租户特性的惊鸿一瞥
 date: 2020-10-26 10:56
 tags: [k8s, multitenancy]
 categories: kubernetes
@@ -146,3 +146,25 @@ HNC 能满足这个使用场景。你可以定义一个 parent 命名空间，�
 ## 结论
 
 HNC 尝试去弥补k8s的多租户特性缺失的遗憾。这个underlying的想法是一个足够好的出发点。它需要更多来自社区的爱和众多开发者的反馈。
+
+下面是一些我们正在积极提的的issues和features:
+
+- 将 HNCConfiguration 对象从集群级别(cluster-level)的资源转换为（parent）命名空间范围（namespace scope）的配置。另一种做法是保留集群级别的HNCConfiguration同时开发一种命名空间范围的 HNCConfiguration。
+
+- 如果 child 命名空间中的对象和 parent 命名空间中的对象重名，则使 child 命名空间中的同名对象无效。假定你在child 命名空间定义一个名为developer的 RBAC Role, 如果你在 parent 命名空间设置了一个同名的 Role, parent 命名空间的 Role 就应该覆盖掉 child 命名空间的 Role.
+
+- Fix 掉 parent命名空间和 child 命名空间传递集群级别的数据和属性（不可重复）时候出现的一些问题。举个栗子：Service 对象就不能被传递，因为 HNC 会复制 Service 对象的每个属性到 child 命名空间，包括 spec.ClusterIP （集群中的唯一数据）
+
+你可以通过加入 [google 多租户特性工作组](https://github.com/kubernetes/community/blob/master/wg-multitenancy/README.md), 来及时了解 HNC 的开发过程。
+
+## 结尾
+
+SIGHUP 把 HNC 捐献出去的兴趣是非常浓厚的，因为很有可能在未来成为标准。在讨论这项评估期间，有很多基于k8s实现多租户特性的替代品，但是，它仍将很快在未来的某个时间点成为一个标准。
+
+不要忘了访问我们的网站，诸如:
+[SIGHUP site](https://sighup.io/)
+[GitHub organization](https://github.com/sighupio)
+以及本文中所有材料的来源：
+[the Git repository](https://github.com/sighupio/hnc-example-use-cases)
+
+本文译自：https://blog.sighup.io/an-introduction-to-hierarchical-namespace-controller-hnc/?utm_sq=gi975454xd
