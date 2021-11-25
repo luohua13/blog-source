@@ -1,5 +1,5 @@
 ---
-title: Hierarchical Namespace Controller (HNC):对k8s多租户特性的惊鸿一瞥
+title: 译：Hierarchical Namespace Controller (HNC):对k8s多租户特性的惊鸿一瞥
 date: 2020-10-26 10:56
 tags: [k8s, multitenancy]
 categories: kubernetes
@@ -37,6 +37,10 @@ $ chmod +x ./kubectl-hns
 $ export PATH=${PWD}:${PATH}
 
 ```
+
+**注意**：国内用户拉取google的镜像可能有点麻烦，可以将
+gcr.io/k8s-staging-multitenancy/hnc/controller:v0.5.1 替换成：luohua13/hnc-controller
+gcr.io/kubebuilder/kube-rbac-proxy:v0.4.0 替换成：luohua13/kube-rbac-proxy
 
 然后你可以开始测试：
 
@@ -108,4 +112,59 @@ kubernetes 是 SIGHUP 业务的核心部分。我们在很多大规模的公司�
 
 否则，你将很快面临一个混乱的集群。那么你该怎么办呢？
 
-HNC 闪亮登场！ 
+HNC 能满足这个使用场景。你可以定义一个 parent 命名空间，所有的对象在 其 child 命名空间下， 并且不要去手动传递对象。换句话说，就是开发者不需要有任何的集群级别权限。使用 HNC时，你需要被赋予在 parent命名空间下管理 child命名空间的权限。
+
+
+![setup flow](/image/hnc-1.jpeg)
+
+关于这个场景如果你想了解更多，[follow our guide.](https://github.com/sighupio/hnc-example-use-cases/blob/master/use-cases/self-provision/README.md)
+
+### 应用模版
+
+之前的使用案例集中在配置命名空间的管理。接下来这个案例将更进一步。假定你是一个多层应用的owner：
+
+- Frontend
+- Backend
+- DB
+
+如果你要开发一个新的 Frontend feature，你能受益于有一个完整的 Backend 模版，用来在一个稳定和隔离的环境来测试你的 Frontend change!
+
+在这个案例中，你可以在 parent 命名空间下定义如下公有的应用组件：
+
+- DB Deployments and Services
+- Backend Deployments and Services
+- Frontend Services
+
+![setup flow](/image/hnc-2.jpeg)
+
+**重要提示：** 不要把  frontend deployment 放在parent 命名空间中。你需要的修改不应该在 parent 命名空间
+
+然后创建一个 child 命名空间，将你的 修改的frontend deployment 放在这个命名空间下。
+关于这个场景如果你想了解更多，[follow our guide.](https://github.com/sighupio/hnc-example-use-cases/blob/master/use-cases/application-template/README.md)
+
+
+## 结论
+
+HNC 尝试去弥补k8s的多租户特性缺失的遗憾。这个underlying的想法是一个足够好的出发点。它需要更多来自社区的爱和众多开发者的反馈。
+
+下面是一些我们正在积极提的的issues和features:
+
+- 将 HNCConfiguration 对象从集群级别(cluster-level)的资源转换为（parent）命名空间范围（namespace scope）的配置。另一种做法是保留集群级别的HNCConfiguration同时开发一种命名空间范围的 HNCConfiguration。
+
+- 如果 child 命名空间中的对象和 parent 命名空间中的对象重名，则使 child 命名空间中的同名对象无效。假定你在child 命名空间定义一个名为developer的 RBAC Role, 如果你在 parent 命名空间设置了一个同名的 Role, parent 命名空间的 Role 就应该覆盖掉 child 命名空间的 Role.
+
+- Fix 掉 parent命名空间和 child 命名空间传递集群级别的数据和属性（不可重复）时候出现的一些问题。举个栗子：Service 对象就不能被传递，因为 HNC 会复制 Service 对象的每个属性到 child 命名空间，包括 spec.ClusterIP （集群中的唯一数据）
+
+你可以通过加入 [google 多租户特性工作组](https://github.com/kubernetes/community/blob/master/wg-multitenancy/README.md), 来及时了解 HNC 的开发过程。
+
+## 结尾
+
+SIGHUP 把 HNC 捐献出去的兴趣是非常浓厚的，因为很有可能在未来成为标准。在讨论这项评估期间，有很多基于k8s实现多租户特性的替代品，但是，它仍将很快在未来的某个时间点成为一个标准。
+
+不要忘了访问我们的网站，诸如:
+[SIGHUP site](https://sighup.io/)
+[GitHub organization](https://github.com/sighupio)
+以及本文中所有材料的来源：
+[the Git repository](https://github.com/sighupio/hnc-example-use-cases)
+
+本文译自：https://blog.sighup.io/an-introduction-to-hierarchical-namespace-controller-hnc/?utm_sq=gi975454xd
